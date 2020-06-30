@@ -34,13 +34,13 @@ public class PNG {
         this.raw = data;
     }
 
-    public void writePic(){
+    public void writePic(String picname){
 
         byte[] pixels = {};
         try {
 
             pixels = Filter.fullsub(this.raw,this.width);
-            pixels = Compression.compress(pixels,0);
+            pixels = Compression.compress(pixels,9);
         
         } catch (Exception e1) {
             e1.printStackTrace();
@@ -57,7 +57,7 @@ public class PNG {
         Chunk end = new Chunk(Chunk.Type.IEND, new byte[] {});
 
         try {
-            File file = new File("test.png");
+            File file = new File(picname);
             file.createNewFile();
 
             FileOutputStream fos = new FileOutputStream(file);

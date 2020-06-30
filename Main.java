@@ -14,7 +14,7 @@ public class Main {
 
         PNG pic = new PNG(Creator.getX(),Creator.getY());
         pic.setData(raw);
-        pic.writePic();
+        pic.writePic("fullsub.png");
 
         //makeSystemCallXXD();
 

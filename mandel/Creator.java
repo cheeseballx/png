@@ -14,8 +14,8 @@ public class Creator {
     private static double fromI = -1.5;
     private static double toI = 1.5;
 
-    private static int W = 4000;
-    private static int H = 3000;
+    private static int W = 400;
+    private static int H = 300;
     
 
     public static byte[] getBytes(){
