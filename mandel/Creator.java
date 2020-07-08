@@ -9,13 +9,13 @@ import png.Utils;
 
 public class Creator {
     
-    private static double fromR = -2.5;
-    private static double toR = 1.5;
-    private static double fromI = -1.5;
-    private static double toI = 1.5;
+    private static double fromR = -2.01; //-2.5;
+    private static double toR = 2.01; //1.5;
+    private static double fromI = -2.01; //-1.5;
+    private static double toI = 2.01; //1.5;
 
-    private static int W = 4000;
-    private static int H = 3000;
+    private static int W = 12000;
+    private static int H = 12000;
     
 
     public static byte[] getBytes(){
@@ -29,12 +29,10 @@ public class Creator {
                 {
                     double r = fromR + stepX * x;
                     double i = fromI + stepY * y;
-                    //long val = diverge(0,0,r, i,0);
                     long val = mandelbrot(r,i,255,2);
 
                     if (val < 0) baos.write(new byte[]{(byte)0,(byte)0,(byte)0});
-                    else if (val >255) baos.write(new byte[]{0,0,0});
-                    else baos.write(new byte[]{Utils.longToBytes(val)[3] ,0,0});
+                    else baos.write(getColor(val));
                 }
         }
         catch(Exception e){
@@ -43,25 +41,74 @@ public class Creator {
         }    
         return baos.toByteArray();
     }
+    
+    private static byte[] getColor(long val){
+        int red = 255;
+        int green = 255;
+        int blue = 255;
 
-    public static int diverge(double zr, double zi,double r,double i,int depth){
-        double zrtemp = zr*zr - (zi*zi) + r;
-        zi = 2 * zr * zi + i;
-        zr = zrtemp;
-
-        if (depth > 256){
-            return -1;
+        if (val == 0){
+            red = 0;
+            green = 0;
+            blue = 255;
         }
 
-        double sqdist = zr*zr + zi*zi;
-        if (sqdist > 4 ){
-            return depth;
+        if (val == 1){
+            red = 255;
+            blue  = 0;
+            green = 0;
+        }
+        else if (val == 2){
+            red = 200;
+            blue =  0;
+            green = 0;
+        }
+        else if (val == 3){
+            red = 150;
+            blue = 0;
+            green = 0;
+        }
+        else if (val == 4){
+            red = 100;
+            blue = 0;
+            green = 0;
+        }
+        else if (val == 5){
+            red = 50;
+            blue = 0;
+            green = 0;
+        }
+        else if (val == 6){
+            red = 0;
+            blue = 0;
+            green = 255;
+        }
+        else if (val == 7){
+            red = 0;
+            blue = 0;
+            green = 200;
+        }
+        else if (val == 8){
+            red = 0;
+            blue = 0;
+            green = 150;
+        }
+        else if (val == 9){
+            red = 0;
+            blue = 0;
+            green = 100;
+        }
+        else if (val == 10){
+            red = 0;
+            blue = 0;
+            green = 50;
         }
 
-        return diverge(zr, zi, r, i,depth+1); 
-    }
 
-    public static int mandelbrot(double real,double imag,int maxIter,double dist){
+        return new byte[]{(byte)red,(byte)green,(byte)blue};
+    } 
+
+    private static int mandelbrot(double real,double imag,int maxIter,double dist){
         double a=0;
         double b=0;
         double temp = 0.0;

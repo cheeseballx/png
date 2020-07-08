@@ -1,41 +1,98 @@
 package png;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class Filter {
 
-    public static byte[] fullsub(byte[] data,int cols){
-    
-        System.out.println("start");
+    public final static int NO_FILTER = 0;            //DO NO FILTERING AT ALL
+    public final static int SUB_FILTER = 1;           //DO THE SUBFILTERING ALL OVER THE IMAGE
+    public final static int TOP_FILTER = 2;           //TOP FILTER ALL OVER THE IMAGE
+    public final static int AVERAGE_FILTER = 3;       //AVERAGE FILTER ALL OVER THE IMAGE
+    public final static int PAETH_FILTER = 4;         //PAETH FILTER ALL OVER THE IMAGE
+    public final static int CHK_BFR_FILTER = 5;       //DO ALL FILTERS AND CHECK SMALLEST SIZE
+    public final static int CHK_PER_LINE_FILTER = 6;  //DO ALL FILTERS EVERY LINE AND CHECK FOR SMALLEST SIZE 
+
+
+    public static byte[] filter(byte[] data,int cols,int bpp, int type){
+        int bpl = cols * bpp;
+        int rows = data.length / bpl;
+
         try{
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            int mult = cols * 3;
-            for (int r=0; r< data.length / mult; r++){
-            
-                byte[] line = Arrays.copyOfRange(data,r*mult,r*mult + mult);
+            switch(type){
+                case NO_FILTER:         return fullno(data,rows,bpl); 
+                case SUB_FILTER:        return fullsub(data,rows,bpl,bpp);
+                case TOP_FILTER:        return fulltop(data,rows,bpl);
+                case AVERAGE_FILTER:    return fullavrg(data,rows,bpl,bpp);
+                case PAETH_FILTER:      return fullpaeth(data,rows,bpl,bpp); 
                 
-                //just need this for top-filter and the average
-                byte[] lineabove = new byte[line.length];
-                if (r>0)
-                    lineabove = Arrays.copyOfRange(data,(r-1)*mult,(r-1)*mult + mult);
-
-                //System.out.println(lineabove.length + "  " +line.length);
-
-                //line = nofilter(line);
-                //line = sub(line,3);
-                //line = top(line,lineabove);
-                //line = average(line,lineabove,3);
-                line = paeth(line, lineabove, 3);
-                baos.write(line);
+                default:  return fullno(data,rows,bpl); 
             }
-            return baos.toByteArray();
         }
         catch(Exception e){
-            e.printStackTrace();
+            System.out.println("ERROR " + e.toString());
         }
-        return new byte[]{};
+        return null;
     }
+
+    private static byte[] fullno(byte[] data,int rows,int bpl) throws IOException{
+        
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            for (int r=0; r< rows; r++){
+                byte[] line = Arrays.copyOfRange(data,r * bpl,r*bpl + bpl);
+                line = no(line);
+                baos.write(line);
+            }
+        return baos.toByteArray();
+    }
+
+    private static byte[] fullsub(byte[] data,int rows,int bpl,int bpp) throws IOException{
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int r=0; r< rows; r++){
+            byte[] line = Arrays.copyOfRange(data,r * bpl,r*bpl + bpl);
+            line = sub(line,bpp);
+            baos.write(line);
+        }
+        return baos.toByteArray(); 
+    }
+
+    private static byte[] fulltop(byte[] data,int rows,int bpl) throws IOException{
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int r=0; r< rows; r++){
+            byte[] line = Arrays.copyOfRange(data,r * bpl,r*bpl + bpl);
+            byte[] top = new byte[line.length];
+            if (r>0) top = Arrays.copyOfRange(data,(r-1)*bpl, (r-1)*bpl + bpl);
+            line = top(line,top);
+            baos.write(line);
+        }
+        return baos.toByteArray(); 
+    }
+
+    private static byte[] fullavrg(byte[] data,int rows,int bpl,int bpp) throws IOException{
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int r=0; r< rows; r++){
+            byte[] line = Arrays.copyOfRange(data,r * bpl,r*bpl + bpl);
+            byte[] top = new byte[line.length];
+            if (r>0) top = Arrays.copyOfRange(data,(r-1)*bpl, (r-1)*bpl + bpl);
+            line = average(line,top,bpp);
+            baos.write(line);
+        }
+        return baos.toByteArray(); 
+    }
+
+    private static byte[] fullpaeth(byte[] data,int rows,int bpl,int bpp) throws IOException{
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int r=0; r< rows; r++){
+            byte[] line = Arrays.copyOfRange(data,r * bpl,r*bpl + bpl);
+            byte[] top = new byte[line.length];
+            if (r>0) top = Arrays.copyOfRange(data,(r-1)*bpl, (r-1)*bpl + bpl);
+            line = paeth(line,top,bpp);
+            baos.write(line);
+        }
+        return baos.toByteArray(); 
+    }
+
 
     private static byte[] sub(byte[] line,int bpp) {  
     
@@ -106,7 +163,7 @@ public class Filter {
         return output;  
     }
 
-    private static byte[] nofilter(byte[] line) {  
+    private static byte[] no(byte[] line) {  
         byte[] output = new byte[line.length + 1];
         output[0] = 0x00; //for nothing
 

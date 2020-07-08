@@ -23,6 +23,8 @@ public class PNG {
 
     private int width;
     private int height;
+    private int filter;
+    private int compression;
     private byte[] raw;
     
     public PNG(int width, int height){
@@ -34,19 +36,25 @@ public class PNG {
         this.raw = data;
     }
 
+    public void setFilter(int filter){
+        this.filter = filter;
+    }
+
+    public void setCompression(int compression){
+        this.compression = compression;
+    }
+
     public void writePic(String picname){
 
         byte[] pixels = {};
         try {
-
-            pixels = Filter.fullsub(this.raw,this.width);
-            pixels = Compression.compress(pixels,9);
-        
+            pixels = Filter.filter(this.raw,this.width,3,this.filter);
+            pixels = Compression.compress(pixels,this.compression);
         } catch (Exception e1) {
             e1.printStackTrace();
         }
 
-        byte[] startbytes = new byte[ (4 +4 + 5) ];
+        byte[] startbytes = new byte[ ( 4 + 4 + 5) ];
     
         System.arraycopy(Utils.longToBytes(width), 0,startbytes,                   0, 4);
         System.arraycopy(Utils.longToBytes(height),0,startbytes,                   4, 4);
