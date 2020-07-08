@@ -19,11 +19,12 @@ public class Filter {
                 if (r>0)
                     lineabove = Arrays.copyOfRange(data,(r-1)*mult,(r-1)*mult + mult);
 
-                //line = nofilter(line);
+                //System.out.println(lineabove.length + "  " +line.length);
+
+                line = nofilter(line);
                 //line = sub(line,3);
                 //line = top(line,lineabove);
-                line = average(line,lineabove,3);
-
+                //line = average(line,lineabove,3);
                 baos.write(line);
             }
             return baos.toByteArray();
@@ -50,7 +51,7 @@ public class Filter {
     
         byte[] output = new byte[line.length + 1];
         output[0] = 0x02; //top filter
-
+        
         for (int i=1; i<output.length; i++)
             output[i] = (byte)((line[i-1] - top[i-1])% 256);
         return output;  
@@ -59,11 +60,20 @@ public class Filter {
     private static byte[] average(byte[] line,byte[] top,int bpp) {  
     
         byte[] output = new byte[line.length + 1];
-        output[0] = 0x03; //average filter
+        output[0] = 0x3; //average filter
 
         for (int i=1; i<output.length; i++){
-            int sub = i-bpp-1 >= 0 ? line[i-bpp-1] : 0;
-            output[i] = (byte)( (line[i-1] - (int)( (sub+(int)top[i-1]) /2 )) % 256);
+            byte sub = i-bpp-1 >= 0 ? line[i-bpp-1] : 0;
+            
+            
+            byte pix = line[i-1];
+            byte above = top[i-1];
+       
+            int calc = ((((int)above + (int)sub)%256) / 2 );
+            
+            calc = (pix-calc);
+            
+            output[i] = (byte)calc;//(byte)( (line[i-1] - (byte)( (sub+(int)top[i-1]) /2 )) % 256);
         }
         return output;  
     }
